@@ -85,7 +85,7 @@ tipo_muestra <- c("es_trabajador", "es_familia")
 
 new_variables_prefilter<- function(data) { 
   # OJO, DEBEN ENTRAR TODOS INDEPENDIENTE DE SI DECLARAN TIEMPO O NO
-  act_s_domestico <- c("a6","a14","a24","a32")
+  act_s_domestico <- c("a6","a14","a24","a32", "a1", "a19")
   recibe_servicio_domestico <- c("a1", "a19")
   
   # INFORMACIÓN DEL INDIVIDUO
