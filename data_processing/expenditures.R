@@ -207,7 +207,7 @@ apollo_probabilities <- function(apollo_beta, apollo_inputs, functionality="esti
       get(paste0("bsur_", alt)) * (macrozona == "sur")
   }
 
-  ### Define settings for MNL model component
+  ### Define settings for MNL models component
   fmnl_settings <- list(
     alternatives  = c("alimentos", "vestimenta", "cuentas", "hogar", "salud", "transporte","comunicaciones", "recreacion", "educacion", "restaurantes"),
     choiceShares  = list(alimentos = g.alimentos, vestimenta = g.vestimenta, cuentas = g.cuentas,
