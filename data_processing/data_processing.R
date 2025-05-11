@@ -71,34 +71,34 @@ data_post <- diagnostico_trabajo(data_post, F, T)
 data_post <- adjust_working_hours(data_post)
 data_post <- data_to168hours(data_post) # TODO probar distintos posicionamientos
 
-### Continuar con la imputación de gastos, está la opción de usar fractional logit para imputar los gastos
+### Continuar con la imputación de gastos, está la opción de us|ar fractional logit para imputar los gastos
 #aux <- data_post %>% filter(ing_trab > 0, t_to > 0, trabaja == 1) %>%
 #  mutate(w = ing_trab / t_to) %>%
-#  dplyr::select(ing_personal, ing_trab, w, tt, edad_años, trabaja)
+#  dplyr::select(ing_personal, ing_trab, w, tt, edad_anios, trabaja)
 
 data_descargable <- agregar_actividades(data_post)
-data22 <- data_descargable[["data22"]] %>% mutate(w = ing_trab / t_to)
+data25 <- data_descargable[["data25"]] %>% mutate(w = ing_trab / t_to)
 data11 <- data_descargable[["data11"]] %>% mutate(w = ing_trab / t_paid_work)
-haven::write_dta(data22, "data/enut-ii-22.dta")
+haven::write_dta(data25, "data/enut-ii-25.dta")
 haven::write_dta(data11, "data/enut-ii-11.dta")
-write_csv(data22, "data/enut-ii-22.csv")
+write_csv(data25, "data/enut-ii-25.csv")
 write_csv(data11, "data/enut-ii-11.csv")
 
 source("data_processing/processing_functions.R")
 
-data22 = haven::read_dta( "data/enut-ii-22.dta")
+data25 = haven::read_dta( "data/enut-ii-25.dta")
 data11 = haven::read_dta( "data/enut-ii-11.dta")
 
-table(data22$es_trabajador)
-table(data22$es_familia)
+table(data25$es_trabajador)
+table(data25$es_familia)
 
 ## ----- Análisis datos resultantes -----------------
 data11G <- imputacion_gastos(data11)
-data22G <- imputacion_gastos(data22)
+data25G <- imputacion_gastos(data25)
 
-haven::write_dta(data22G, "data/enut-ii-22G.dta")
+haven::write_dta(data25G, "data/enut-ii-25G.dta")
 haven::write_dta(data11G, "data/enut-ii-11G.dta")
-write_csv(data22G, "data/enut-ii-22G.csv")
+write_csv(data25G, "data/enut-ii-25G.csv")
 write_csv(data11G, "data/enut-ii-11G.csv")
 
 ggplot(data11G, aes(x = w)) + geom_histogram(bins = 50)
