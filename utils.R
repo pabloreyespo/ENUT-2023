@@ -80,11 +80,11 @@ get_data <- function(
   fixed_income <- c("ing_jub_aps", "ing_gpp")
 
   model_data <- haven::read_dta("data/enut-ii-25G.dta") %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+    filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
     mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
+           menor25 = edad_anios <  25,
+           mayor45 = edad_anios >= 45,
+           mayor66 = edad_anios >= 60,
            university = nivel_escolaridad ==  'universitaria',
            underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
            children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
@@ -146,11 +146,11 @@ get_data_tc <- function(especificas = c(), disputed = "t_sleep") {
   fixed_income <- c("ing_jub_aps", "ing_gpp")
 
   model_data <- haven::read_dta("data/enut-ii-11G.dta")  %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+    filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
     mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
+           menor25 = edad_anios <  25,
+           mayor45 = edad_anios >= 45,
+           mayor66 = edad_anios >= 60,
            university = nivel_escolaridad ==  'universitaria',
            underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
            children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
@@ -184,66 +184,6 @@ get_data_tc <- function(especificas = c(), disputed = "t_sleep") {
   model_data <<- model_data# %>% dplyr::select(id_persona, ing_personal, w, ta, all_of(paste0(times,"_",1)), all_of(paste0(times,"_",2)), all_of(paste0(expenditures,"_",1)), all_of(paste0(expenditures,"_",2)), all_of(especificas))
 }
 
-get_data_2tc <- function(especificas = c(), disputed = c("t_sleep", "t_meals")) {
-  times <<- c('Tw', 'Tfleisure', 'Tc')
-  expenditures <<- c("Ef","Ec")
-  exp_committed <- c("cuentas", "hogar","salud", "transporte" , "educacion")
-  exp_1 <- c("alimentos","recreacion","restaurantes","vestimenta","comunicaciones")
-  fixed_income <- c("ing_jub_aps", "ing_gpp")
-
-  model_data <- haven::read_dta("data/enut-ii-11G.dta")  %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
-    mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
-           university = nivel_escolaridad ==  'universitaria',
-           underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
-           children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
-           only_worker = case_when(n_trabajadores == 1 & trabaja == 1 ~ 1, T ~ 0),
-           metropolitana = macrozona == "metropolitana",
-           norte = macrozona == "norte",
-           centro = macrozona == "centro",
-           sur = macrozona == "sur"
-    )
-
-  leisure_activities <- c("t_leisure", disputed)
-  acts  <-c("t_personal_care", "t_sleep","t_meals", "t_commute1", "t_commute2", "t_care_work", "t_domestic_work", "t_unpaid_voluntary", "t_education")
-  non_leisure_activities <- acts[!(acts %in% leisure_activities)]
-  model_data[, "ta"] <- 168
-
-  model_data[, "Tw_1"]        <- model_data[, "t_paid_work"]
-  model_data[, "Tfleisure_1"] <- model_data[, "t_leisure"]
-  model_data[, "Tc_1"] <- rowSums(model_data[, acts])
-  model_data[, "Ec_1"] <- rowSums(model_data[, exp_committed]) - rowSums(model_data[, fixed_income])
-  model_data[, "ec_1"] <- model_data[, "Ec_1"] / (model_data[, "w"] * (model_data[, "ta"]-model_data[, "Tc_1"]))
-
-  model_data[, "Tw_2"] <- model_data[, "t_paid_work"]
-  model_data[, "Tfleisure_2"] <- rowSums(model_data[, leisure_activities]) - model_data[, disputed[1]]
-  model_data[, "Tc_2"] <- rowSums(model_data[, non_leisure_activities]) + model_data[, disputed[1]]
-  model_data[, "Ec_2"] <- rowSums(model_data[, exp_committed]) - rowSums(model_data[, fixed_income])
-  model_data[, "ec_2"] <- model_data[, "Ec_2"] / (model_data[, "w"] * (model_data[, "ta"]-model_data[, "Tc_2"]))
-
-  model_data[, "Tw_3"] <- model_data[, "t_paid_work"]
-  model_data[, "Tfleisure_3"] <- rowSums(model_data[, leisure_activities]) - model_data[, disputed[2]]
-  model_data[, "Tc_3"] <- rowSums(model_data[, non_leisure_activities]) + model_data[, disputed[2]]
-  model_data[, "Ec_3"] <- rowSums(model_data[, exp_committed]) - rowSums(model_data[, fixed_income])
-  model_data[, "ec_3"] <- model_data[, "Ec_3"] / (model_data[, "w"] * (model_data[, "ta"]-model_data[, "Tc_3"]))
-
-  model_data[, "Tw_4"] <- model_data[, "t_paid_work"]
-  model_data[, "Tfleisure_4"] <- rowSums(model_data[, leisure_activities])
-  model_data[, "Tc_4"] <- rowSums(model_data[, non_leisure_activities])
-  model_data[, "Ec_4"] <- rowSums(model_data[, exp_committed]) - rowSums(model_data[, fixed_income])
-  model_data[, "ec_4"] <- model_data[, "Ec_4"] / (model_data[, "w"] * (model_data[, "ta"]-model_data[, "Tc_4"]))
-
-  model_data[, "Ef_1"] <- rowSums(model_data[, exp_1])
-  model_data[, "Ef_2"] <- rowSums(model_data[, exp_1])
-  model_data[, "Ef_3"] <- rowSums(model_data[, exp_1])
-  model_data[, "Ef_4"] <- rowSums(model_data[, exp_1])
-  model_data["I"] <- rowSums(model_data[, fixed_income])
-  model_data <- type.convert(model_data, as.is =TRUE)
-  model_data <<- model_data# %>% dplyr::select(id_persona, ing_personal, w, ta, all_of(paste0(times,"_",1)), all_of(paste0(times,"_",2)), all_of(paste0(expenditures,"_",1)), all_of(paste0(expenditures,"_",2)), all_of(especificas))
-}
 
 ########################################################################################################################
 ###################################               INTIIAL VALUES               #########################################
@@ -357,55 +297,4 @@ generate_initials_quadratic <- function(def_sigma = 10, num =10, nClass = 1, esp
     testvals[,paste0(especificas,"_", 1)] <- 0
   }
   return(testvals)
-}
-
-########################################################################################################################
-###################################            REPORT VALUES OF TIME            ########################################
-########################################################################################################################
-
-report_values_of_time_thph <- function(best_model, dbs) {
-  Tc  <- dbs[, "Tc"]
-  Ec  <- dbs[, "Ec"]
-  w   <- dbs[, "w"]
-  ec  <- Ec / (w * (168 - Tc))
-
-  TH             <- 1
-  PH             <- as.numeric(best_model$estimate["PH"])
-  theta_w        <- as.numeric(best_model$estimate["theta_w"])
-
-  #### Valores del Tiempo
-  thetaphiec <- PH + theta_w + (TH + theta_w)*ec
-  auxsqrt <- sqrt(thetaphiec^2 - 4*theta_w*ec*(PH + TH + theta_w))
-  Tw <- (168-Tc)*(thetaphiec + auxsqrt) / (2*(PH + TH + theta_w))
-
-  dbs[, "cteVoLi"]  <- (w*Tw - Ec) / (168-Tw-Tc)
-  dbs[, "cteVTAWi"] <- (w*Tw - Ec) / (Tw)
-  cteVoL  <- mean(dbs$cteVoLi  , na.rm = T)
-  cteVTAW <- mean(dbs$cteVTAWi , na.rm = T)
-  coefVoL <-  TH / PH
-  coefVTAW <- theta_w / PH
-
-  dbs[, "VoL"]  <- coefVoL  * dbs[, "cteVoLi"]
-  dbs[, "VTAW"] <- coefVTAW * dbs[, "cteVTAWi"]
-
-  #### Intervalos de Confianza
-  delta <- apollo_deltaMethod(best_model, list(expression=c(
-    VoL      = glue('{cteVoL} *({TH} / PH)'),
-    VTAW     = glue('{cteVTAW}*(theta_w / PH)'))))
-
-  dbs[, "VoLse"]  <- VoLSE  <- delta[1,"s.e."]
-  dbs[, "VTAWse"] <- VTAWSE <- delta[2,"s.e."]
-  VoLmean  <- mean(dbs$VoL  )
-  VTAWmean <- mean(dbs$VTAW )
-
-  cat("VoL IC : [", round(VoLmean - 1.96*VoLSE, 4), ";", round(VoLmean + 1.96*VoLSE, 4),"]", end = "\n")
-  cat("VTAW IC: [", round(VTAWmean - 1.96*VTAWSE, 4), ";", round(VTAWmean + 1.96*VTAWSE, 4),"]", end = "\n")
-  var <- 1.96*sd(dbs$w)/sqrt(nrow(dbs))
-  cat("observed wage rate:", mean(dbs$w), end = "\n")
-  cat("observed wage rate IC: [",round(mean(dbs$w) - var, 4), ";", round(mean(dbs$w) + var, 4),"]", end = "\n")
-
-  # dbs %>% ggplot(aes(x = VoL  / w, fill = "VoL")) + geom_histogram(bins = 100)
-  # dbs %>% ggplot(aes(x = VTAW / w, fill = "VTAW")) + geom_histogram(bins = 100)
-  # dbs <<- dbs
-  return(delta)
 }
