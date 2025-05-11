@@ -80,11 +80,11 @@ get_data <- function(
   fixed_income <- c("ing_jub_aps", "ing_gpp")
 
   model_data <- haven::read_dta("data/enut-ii-25G.dta") %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+    filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
     mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
+           menor25 = edad_anios <  25,
+           mayor45 = edad_anios >= 45,
+           mayor66 = edad_anios >= 60,
            university = nivel_escolaridad ==  'universitaria',
            underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
            children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
@@ -146,11 +146,11 @@ get_data_tc <- function(especificas = c(), disputed = "t_sleep") {
   fixed_income <- c("ing_jub_aps", "ing_gpp")
 
   model_data <- haven::read_dta("data/enut-ii-11G.dta")  %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+    filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
     mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
+           menor25 = edad_anios <  25,
+           mayor45 = edad_anios >= 45,
+           mayor66 = edad_anios >= 60,
            university = nivel_escolaridad ==  'universitaria',
            underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
            children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
@@ -192,11 +192,11 @@ get_data_2tc <- function(especificas = c(), disputed = c("t_sleep", "t_meals")) 
   fixed_income <- c("ing_jub_aps", "ing_gpp")
 
   model_data <- haven::read_dta("data/enut-ii-11G.dta")  %>%
-    filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+    filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
     mutate(female = sexo,
-           menor25 = edad_años <  25,
-           mayor45 = edad_años >= 45,
-           mayor66 = edad_años >= 60,
+           menor25 = edad_anios <  25,
+           mayor45 = edad_anios >= 45,
+           mayor66 = edad_anios >= 60,
            university = nivel_escolaridad ==  'universitaria',
            underage_in_household = case_when(n_menores >= 1 ~ 1, T ~ 0),
            children_in_household = case_when(n_menores6 + n_menores12 >= 1 ~ 1, T ~ 0),
@@ -408,4 +408,30 @@ report_values_of_time_thph <- function(best_model, dbs) {
   # dbs %>% ggplot(aes(x = VTAW / w, fill = "VTAW")) + geom_histogram(bins = 100)
   # dbs <<- dbs
   return(delta)
+}
+
+
+post_eval_latent_class <- function(modelName, model_data, set_class ) {
+  apollo_initialise()
+  on.exit(apollo_detach(apollo_beta, apollo_inputs))
+
+  model <- apollo_loadModel(paste0("output/",modelName))
+  apollo_beta    <- model$estimate
+  apollo_fixed   <- c()
+  apollo_control <- model$apollo_control
+  apollo_inputs  <- apollo_validateInputs(
+    apollo_control = apollo_control ,
+    database       = model_data,
+    apollo_beta  = apollo_beta,
+    apollo_fixed = apollo_fixed)
+
+  apollo_attach(apollo_beta, apollo_inputs)
+  res    <- model$apollo_lcPars(apollo_beta, apollo_inputs)
+  pivals <- res$pi_values
+  model_data[, paste0("pi_", 1:nClass)] <- pivals
+  if (set_class) {
+    model_data["class"] <- max.col(model_data[, paste0("pi_", 1:nClass)])
+  }
+  out = list(data=model_data, model=model)
+  return(out)
 }

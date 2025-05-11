@@ -71,7 +71,7 @@ composicion_hogar <- c("parentesco",
                        "vive_pareja")
 
 sociodemograficas <- c("sexo",
-                       "edad_años",
+                       "edad_anios",
                        "tramo_edad",
                        "NSE",
                        "nivel_escolaridad",
@@ -348,7 +348,7 @@ new_variables_postfilter <- function(data) {
                                    region_ord == 7 ~ "metropolitana",
                                    region_ord <= 11  ~ "centro",
                                    TRUE ~ "sur"),
-             edad_años = edad,
+             edad_anios = edad,
              tramo_edad = case_when(
                tr_edad == 1 ~ "12-24",
                tr_edad == 2 ~ "25-44",

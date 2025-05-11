@@ -8,7 +8,7 @@ library(glue)
 set.seed(42)
 
 model_data <- haven::read_dta("../data/enut-ii-11G.dta") %>%
-  filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+  filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
   mutate(ta = 168,
          Tw = t_paid_work,
          Tc = 168 - t_leisure -  t_paid_work,
@@ -33,7 +33,7 @@ model_data <- model_data %>%
          centro = (macrozona == "centro"),
          sur = (macrozona == "sur"),
          female = (sexo==1),
-         edad = edad_años
+         edad = edad_anios
   )
 
 sociodemograficas <- 'edad1 + edad3 + edad4 + q2 + q3 + q4 + q5'
@@ -65,7 +65,7 @@ fit = sem(formulation, data = model_data, estimator = "MLM",   meanstructure = T
 summary(fit)
 
 model_data <- haven::read_dta("../data/enut-ii-22G.dta") %>%
-  filter(edad_años >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
+  filter(edad_anios >= 18, es_trabajador == 1, ing_personal > 0, w > 0, total_expenses/ing_personal <= 5) %>%
   mutate(ta = 168,
          Tw = t_to,
          Tl = t_vsyo_aa + t_vsyo_csar,
@@ -90,7 +90,7 @@ model_data <- model_data %>%
          centro = (macrozona == "centro"),
          sur = (macrozona == "sur"),
          female = (sexo==1),
-         edad = edad_años
+         edad = edad_anios
   ) %>%
   mutate(
     Tl_norte = Tl * norte,

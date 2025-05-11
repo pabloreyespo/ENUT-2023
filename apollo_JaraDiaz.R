@@ -122,7 +122,14 @@ apollo_jaradiaz <- function(jaradiaz_settings, functionality="estimate"){
   #### PREDICTION ####   ---> Cómo predecir con el modelo
   # ---------------- #
   if(functionality=="prediction"){
-    return(NA)
+    if ("alpha" %in% names(jaradiaz_settings)) {
+      topt_work = (ta - Tc) * ( (beta + alpha*ec) + sqrt((beta + alpha*ec)^2 - (2*alpha+2*beta-1)*ec) )
+    } else {
+      topt_work = ((ta-Tc) / (2*((PH + TH + theta_w)))) *
+        (PH + theta_w + (TH + theta_w)*ec + sqrt((PH + theta_w + (TH + theta_w)*ec)^2 - 4*theta_w*ec*((PH + TH + theta_w))))
+    }
+
+    return(topt_work)
   }
 
   if(functionality=="gradient"){
@@ -297,7 +304,7 @@ apollo_jaradiaz_2pi <- function(jaradiaz_settings, functionality="estimate"){
   #### OUTPUT #### ---> En base a los datos que entrego me hace un reporte, puedo hacerlo pero aun no es necesario
   # ------------ #
   if(functionality %in% c("output", "report")){
-    ans <- apollo_jaradiaz(jaradiaz_settings, functionality="estimate")
+    ans <- apollo_jaradiaz_2pi(jaradiaz_settings, functionality="estimate")
     return(ans)
   }
 
@@ -305,7 +312,14 @@ apollo_jaradiaz_2pi <- function(jaradiaz_settings, functionality="estimate"){
   #### PREDICTION ####   ---> Cómo predecir con el modelo
   # ---------------- #
   if(functionality=="prediction"){
-    return(NA)
+    if ("alpha" %in% names(jaradiaz_settings)) {
+      topt_work = (ta - Tc) * ( (beta + alpha*ec) + sqrt((beta + alpha*ec)^2 - (2*alpha+2*beta-1)*ec) )
+    } else {
+      topt_work = ((ta-Tc) / (2*((PH + TH + theta_w)))) *
+        (PH + theta_w + (TH + theta_w)*ec + sqrt((PH + theta_w + (TH + theta_w)*ec)^2 - 4*theta_w*ec*((PH + TH + theta_w))))
+    }
+
+    return(topt_work)
   }
 
   if(functionality=="gradient"){

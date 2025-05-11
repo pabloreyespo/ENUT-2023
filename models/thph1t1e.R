@@ -1,24 +1,21 @@
 rm(list = ls())  # .rs.restartR()
-pkgs <- c("ggplot2", "dplyr", "tidyr", "readr", "purrr", "tibble", "stringr", "forcats", "lubridate", "haven", "reshape2","apollo", "comprehenr", "Hmisc")
-est_set <- list(writeIter = FALSE, silent = T, maxIterations=500, scaleHessian = F, scaleAfterConvergence = F, estimationRoutine = "bfgs",
-                bgw_settings = list(maxFunctionEvals = 1000), validateGrad  = FALSE)
-invisible(lapply(pkgs, library, character.only=TRUE))
 source("utils.R")
 source("apollo_jaradiaz.R")
 set.seed(42)
 
-###############################################################################################################
-
-##############################################################################################################
-
+est_set <- list(
+  writeIter = FALSE,
+  silent = T,
+  maxIterations=500,
+  scaleHessian = F,
+  scaleAfterConvergence = F,
+  estimationRoutine = "bgw",
+  hessianRoutine = "maxLik",
+  bgw_settings = list(maxFunctionEvals = 1000),
+  validateGrad  = FALSE
+)
 
 get_data()
-get_data(
-  free_activities = list(
-    Tw = c("t_to"),
-    Tfleisure = c('t_vsyo_csar', 't_vsyo_aa', 't_mcm_leer', 't_mcm_audio', 't_mcm_video', 't_mcm_computador')),
-  free_expenditures = list(Ef1 = c("alimentos","recreacion","restaurantes","comunicaciones","vestimenta")))
-
 model_data <- model_data %>% filter(ec>0)
 nvals <- 100
 modelName <- "ENUT-THPH1T1E"
@@ -52,7 +49,7 @@ apollo_probabilities <- function(apollo_beta, apollo_inputs, functionality="esti
     sigma       = sigma,
     componentName = "model")
 
-  P[["model"]] <- apollo_jaradiaz(jaradiaz_settings = jaradiaz_settings, functionality = functionality)
+  P[["model"]] <- apollo_jaradiaz_2pi(jaradiaz_settings = jaradiaz_settings, functionality = functionality)
   P <- apollo_prepareProb(P, apollo_inputs, functionality)
   return(P)
 }
@@ -108,5 +105,37 @@ library(glue)
 report_values_of_time_thph(best_model, model_data)
 
 
+apollo_inputs = apollo_validateInputs(
+    apollo_control = model$apollo_control,
+    database = database,
+    apollo_beta  = model$estimate,
+    apollo_fixed = apollo_fixed,
+    silent       = T)
 
+pred = apollo_prediction(
+  best_model,
+  apollo_probabilities,
+  apollo_inputs = apollo_inputs,
+)
+
+database[,"Tw_pred"] <- pred[,3]
+
+apollo_inputs = apollo_validateInputs(
+    apollo_control = model$apollo_control,
+    database = database %>% mutate(ec = ec*0.9),
+    apollo_beta  = model$estimate,
+    apollo_fixed = apollo_fixed,
+    silent       = T)
+
+pred = apollo_prediction(
+  best_model,
+  apollo_probabilities,
+  apollo_inputs = apollo_inputs,
+)
+
+database[,"Tw_pred"] <- pred[,3]
+database %>% # %>% filter((Tw_pred < 168) & (Tw_pred > 0))
+  ggplot(aes(x = Tw, y = Tw_pred)) +
+  geom_point() +
+  geom_smooth()
 

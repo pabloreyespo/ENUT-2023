@@ -1,15 +1,11 @@
 rm(list = ls())  # .rs.restartR()
 pkgs <- c("ggplot2", "dplyr", "tidyr", "readr", "purrr", "tibble", "stringr", "forcats", "lubridate", "haven", "reshape2","apollo", "comprehenr", "Hmisc")
-est_set <- list(writeIter = FALSE, silent = T, maxIterations=500, scaleHessian = F, scaleAfterConvergence = F, estimationRoutine = "bfgs",
+est_set <- list(writeIter = FALSE, silent = T, maxIterations=500, scaleHessian = F, scaleAfterConvergence = F, estimationRoutine = "bgw",
+hessianRoutine = "maxLik",
                 bgw_settings = list(maxFunctionEvals = 1000), validateGrad  = FALSE)
 invisible(lapply(pkgs, library, character.only=TRUE))
 source('utils.R')
 set.seed(42)
-
-###############################################################################################################
-
-##############################################################################################################
-
 get_data()
 model_data = model_data %>% mutate(wbar = mean(w), ta= 168 - Tc, tabar = mean(168-Tc), Ecbar = mean(Ec))
 #model_data <- type.convert(model_data, as.is =TRUE)
@@ -59,7 +55,7 @@ apollo_inputs = apollo_validateInputs(
     modelName       = modelName,
     modelDescr      = "Modelo Jara-Diaz",
     indivID         = "id_persona",
-    outputDirectory = "output"),
+    outputDirectory = "../output"),
   apollo_beta  = apollo_beta,
   apollo_fixed = apollo_fixed,
   silent       = T)

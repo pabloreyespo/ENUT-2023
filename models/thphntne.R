@@ -4,11 +4,12 @@ source("apollo_jaradiaz.R")
 
 est_set <- list(
   writeIter = FALSE,
-  silent = F,
+  silent = T,
   maxIterations=500,
   scaleHessian = F,
   scaleAfterConvergence = F,
-  estimationRoutine = "bfgs",
+  estimationRoutine = "bgw",
+  hessianRoutine = "maxLik",
   bgw_settings = list(maxFunctionEvals = 1000),
   validateGrad  = FALSE
 )
@@ -44,7 +45,7 @@ if (nexpenditures >= 1) { mod_phis <- to_vec(for (i in expenditures[1:nexpenditu
 mod_sigmas <- to_vec(for (i in 1:nequations) paste0("sigma_",i))
 mod_rhos   <- to_vec(for (i in 1:nequations) for (j in i:nequations) if (i!=j) paste0("rho_",i,j))
 
-testvals <- generate_initials_multi_thph(def_sigma = 30, num = nvals, guess_PH = c(0.51006), guess_theta_w = c(-0.01929))
+testvals <- generate_initials_multi_thph(def_sigma = 30, num = nvals, guess_PH = c(0.3059), guess_theta_w = c(0.1120))
 ans <- c(paste0(names(testvals), '_initial'),
          paste0(names(testvals), '_est'),
          paste0(names(testvals), '_estSE'),
@@ -137,7 +138,7 @@ for (j in 1:nvals) {
   try(ans[j, 'state']    <-  model$message)
   try(ans[j, 'code']     <-  model$code)
   try({
-    if ((model$code==4&est_set$estimationRoutine=="bgw"|model$code==0&est_set$estimationRoutine=="bfgs") & (model$eigValue <= 0)& (model$maximum > best_LL)) { #&
+    if ((model$code==4&est_set$estimationRoutine=="bgw"|model$code==0&est_set$estimationRoutine=="bfgs") & (model$eigValue < 0)& (model$maximum > best_LL)) { #&
       best_LL <- model$maximum
       best_model <- model
       tryCatch(apollo_modelOutput(model), error=function(e) NULL)
